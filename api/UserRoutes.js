@@ -36,9 +36,10 @@ router.post('/register', async(req, res) => {
             error: 'Email already exists'
         })
     } else {
+        // User.hashPassword(req.body.password)
         const newUser = new User({
             email: req.body.email,
-            password: User.hashPassword(req.body.password),
+            password: req.body.password,
             fullname: req.body.fullname,
             service: req.body.service,
             isServiceProvider: req.body.isServiceProvider,

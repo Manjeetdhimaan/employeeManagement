@@ -14,8 +14,6 @@ const flash = require("connect-flash");
 const session = require("express-session");
 var passport = require("passport");
 
-var LocalStrategy = require('passport-local');
-
 
 app.use(cors());
 app.use(express.json());
