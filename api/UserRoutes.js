@@ -36,15 +36,16 @@ router.post('/register', async(req, res) => {
             error: 'Email already exists'
         })
     } else {
-        // User.hashPassword(req.body.password)
         const newUser = new User({
             email: req.body.email,
-            password: req.body.password,
+            password: User.hashPassword(req.body.password),
             fullname: req.body.fullname,
             service: req.body.service,
             isServiceProvider: req.body.isServiceProvider,
             joindate: req.body.joindate,
-            phone: req.body.phone
+            phone: req.body.phone,
+            pic:req.body.pic,
+            bio:req.body.bio
         })
         await newUser.save().then(user => {
             res.status(201).json(user)
@@ -76,25 +77,67 @@ router.post('/login', (req, res, next) => {
     //         return res.status(200).json(user)
     //     });
     // })(req, res, next);
-
-
     User.findOne({
-        email: req.body.email,
-        password: req.body.password
-    }).then(user => {
-        if (user) {
-            res.status(200).json(user)
-        } else {
+        email:req.body.email,
+    }).then(user=>{
+        if(user){
+            bcrypt.compare(req.body.password, user.password, function(err, result) {
+                if(err){
+                    res.status(401).json({
+                        error: 'Incorrect Password',
+                        msg:"Auth Failed",
+                        UserData:'',
+                        status:'error'
+                    })
+                }
+                if(result){
+                 res.status(200).json({
+                     msg:"User Login Successfully",
+                     'UserData':user,
+                     status:'success'
+                    });
+                }else{
+                    res.status(401).json({
+                        error: 'Incorrect Password',
+                        msg:"Auth Failed",
+                        UserData:'',
+                        status:'error'
+                    })
+                }
+             });
+        }
+        else {
             res.status(401).json({
-                error: 'Incorrect email or password'
+                error: 'Incorrect email'
             })
         }
-    }).catch(err => {
-        res.status(500).json({
-            error: err.message
-        })
     })
-})
+    .catch(err=>{
+        res.json({
+            error:err
+        });
+        console.log("hello", err)
+    })
+  
+//     User.findOne({
+//         email: req.body.email,
+//         password: req.body.password
+//     }).then(user => {
+//         if (user) {
+//             res.status(200).json(user)
+//         } else {
+//             res.status(401).json({
+//                 error: 'Incorrect email or password'
+//             })
+//         }
+//     }).catch(err => {
+//         res.status(500).json({
+//             error: err.message
+//         })
+//     })
+// })
+    });
+ 
 
 
 router.get('/:id', (req, res) => {
@@ -207,7 +250,7 @@ router.put('/update/:id', (req, res) => {
                     foundedObject.email = req.body.email;
                 }
                 if (req.body.password) {
-                    foundedObject.password = req.body.password;
+                    foundedObject.password = User.hashPassword(req.body.password);
                 }
                 if (req.body.bio) {
                     foundedObject.bio = req.body.bio;

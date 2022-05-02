@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-// var bcrypt = require('bcrypt')
+var bcrypt = require('bcrypt')
 
 const UserSchema = new mongoose.Schema({
     email: {
@@ -180,11 +180,11 @@ const UserSchema = new mongoose.Schema({
     usePushEach: true
 })
 
-// UserSchema.statics.hashPassword = function hashPassword(password) {
-//     return bcrypt.hashSync(password, 10);
-// }
+UserSchema.statics.hashPassword = function hashPassword(password) {
+    return bcrypt.hashSync(password, 10);
+}
 
-// UserSchema.statics.isValid = function(hashedPassword) {
-//     return bcrypt.compareSync(hashedPassword, this.password);
-// }
+UserSchema.statics.isValid = function(hashedPassword) {
+    return bcrypt.compareSync(hashedPassword, this.password);
+}
 module.exports = mongoose.model('User', UserSchema)

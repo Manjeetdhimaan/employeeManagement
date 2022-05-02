@@ -2,20 +2,43 @@ const router = require('express').Router();
 const Admin = require('../models/Admin');
 const User = require('../models/User');
 var MongoClient = require('mongodb').MongoClient;
-
+var bcrypt = require('bcrypt');
 router.post('/adminLogin', (req, res) => {
     MongoClient.connect(process.env.MONGODB, (err, db) => {
         if (err) throw err;
         var dbo = db.db("myFirstDatabase");
         dbo.collection("admin").findOne({
             email: req.body.email,
-            password: req.body.password
         }).then(user => {
-            if (user) {
-                res.status(200).json(user)
-            } else {
+            if(user){
+                bcrypt.compare(req.body.password, user.password, function(err, result) {
+                    if(err){
+                        res.status(401).json({
+                            error: 'Incorrect Password',
+                            msg:"Auth Failed",
+                            UserData:'',
+                            status:'error'
+                        })
+                    }
+                    if(result){
+                     res.status(200).json({
+                         msg:"User Login Successfully",
+                         'UserData':user,
+                         status:'success'
+                        });
+                    }else{
+                        res.status(401).json({
+                            error: 'Incorrect Password',
+                            msg:"Auth Failed",
+                            UserData:'',
+                            status:'error'
+                        })
+                    }
+                 });
+            }
+            else {
                 res.status(401).json({
-                    error: 'You are not Admin!'
+                    error: 'Incorrect email'
                 })
             }
         }).catch(err => {
@@ -55,7 +78,7 @@ router.post('/updateAdminCredentials/:id', (req, res) => {
         let dbo = db.db("myFirstDatabase");
         const credentials = {
             email: req.body.email,
-            password: req.body.password
+            password: User.hashPassword(req.body.password)
         };
 
         if (!req.body.email) {
